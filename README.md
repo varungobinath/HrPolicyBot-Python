@@ -26,34 +26,42 @@ An intelligent HR Policy Q&A assistant built with **LangGraph**, **LangChain**, 
 
 ```mermaid
 flowchart TD
-    subgraph ArchitectureFlow["HR Policy Bot: End-to-End System Architecture Flow"]
-        User["User / Employee"] -->|"Submits Question"| App["Streamlit UI (app.py)"]
+    subgraph S1["1. User & UI Layer"]
+        User["👤 User / Employee"] -->|"Submits Question"| App["🖥️ Streamlit UI (app.py)"]
+    end
+
+    subgraph S2["2. LangGraph Execution Flow (graph.py)"]
         App -->|"ask_hr_bot(question)"| Start(("START"))
-        Start --> Node1["1. Retrieve Node<br/>(retriever.py)"]
-        
-        Node1 -->|"Ensemble Query"| Ensemble["Hybrid Ensemble Retriever<br/>(Weights: 0.5 BM25 + 0.5 Vector)"]
-        Ensemble -->|"Keyword Matching"| BM25["BM25 Keyword Search<br/>(Exact token matches)"]
-        Ensemble -->|"Semantic Search"| Chroma[("ChromaDB Vector Store<br/>(Dense Embeddings)")]
-        
-        BM25 -->|"Ranked Top-K Chunks"| Context["Aggregated Context<br/>(with Page Citations)"]
-        Chroma -->|"Ranked Top-K Chunks"| Context
-        
-        Context --> Node2["2. Generate Node<br/>(Strict HR Policy Prompt)"]
-        Node2 -->|"Prompt + Context"| LLM["Chat LLM (LM Studio)<br/>(e.g., qwen_qwen3-8b)"]
+        Start --> Node1["🔍 Retrieve Node (retriever.py)"]
+    end
+
+    subgraph S3["3. Hybrid Retrieval Engine (retriever.py)"]
+        Node1 -->|"Query"| Ensemble["⚖️ Ensemble Retriever<br/>(0.5 BM25 + 0.5 Vector)"]
+        Ensemble -->|"Keyword Matching"| BM25["🔤 BM25 Keyword Search<br/>(Exact token matches)"]
+        Ensemble -->|"Semantic Search"| Chroma[("📚 ChromaDB Vector Store<br/>(Dense Embeddings)")]
+        BM25 --> Context["📄 Aggregated Context<br/>(with Page Citations)"]
+        Chroma --> Context
+    end
+
+    subgraph S4["4. Generation Node & Local LLM (graph.py)"]
+        Context --> Node2["🧠 Generate Node<br/>(Strict HR Policy Prompt)"]
+        Node2 -->|"Prompt + Context"| LLM["🤖 Chat LLM (LM Studio)<br/>(e.g., qwen_qwen3-8b)"]
         LLM -->|"Grounded Answer"| EndNode(("END"))
-        
-        EndNode -->|"Display Answer"| App
-        App -->|"Log Q&A Record"| DB[("SQLite Database<br/>(history.db)")]
+    end
+
+    subgraph S5["5. Output & Persistence"]
+        EndNode -->|"Return Answer"| Result["💬 Display Answer in UI"]
+        Result --> DB[("💾 SQLite Database<br/>(history.db)")]
     end
 ```
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph IngestionPipeline["Document Ingestion & Indexing Pipeline (admin.py & ingest.py)"]
-        Admin["Admin User"] -->|"Uploads New Policy"| PDF["company_policy.pdf"]
-        PDF --> Splitter["PyPDFLoader & TextSplitter<br/>(Chunk: 800, Overlap: 150)"]
-        Splitter --> EmbedModel["Embedding Model (LM Studio)<br/>(e.g., text-embedding-qwen3)"]
-        EmbedModel --> VectorStore[("ChromaDB Collection<br/>(chroma_db/)")]
+        Admin["👤 Admin User"] -->|"Uploads New Policy"| PDF["📄 company_policy.pdf"]
+        PDF --> Splitter["✂️ PyPDFLoader & TextSplitter<br/>(Chunk: 800, Overlap: 150)"]
+        Splitter --> EmbedModel["🧠 Embedding Model (LM Studio)<br/>(e.g., text-embedding-qwen3)"]
+        EmbedModel --> VectorStore[("📚 ChromaDB Collection<br/>(chroma_db/)")]
     end
 ```
 
