@@ -1,0 +1,5 @@
+# user app
+uv run streamlit run app.py
+
+# admin app (separate terminal, different port)
+uv run streamlit run admin.py --server.port 8502
